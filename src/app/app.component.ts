@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FlightService } from './services/flight/flight.service';
+import { FlightService } from './services/flight/implements/flight.service';
 
 @Component({
   selector: 'app-root',
