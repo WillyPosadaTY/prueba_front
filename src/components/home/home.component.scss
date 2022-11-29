@@ -1,0 +1,11 @@
+.comp {
+  justify-content: center;
+  display: flex;
+  &_tittle {
+    font-family: cursive;
+  }
+}
+.search_button{
+   white-space: nowrap;
+}
+
