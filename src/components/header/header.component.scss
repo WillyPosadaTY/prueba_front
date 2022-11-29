@@ -1,0 +1,40 @@
+.header {
+  width: 100%;
+  background-color: orange;
+  padding: 1em;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
+
+  &_h1 {
+    background-color: aqua;
+  }
+  &_a {
+  }
+  &_button {
+    background-color: bisque;
+    //display: none;
+
+    @media screen and (max-width: 480px) {
+        display: flex;
+    }
+  }
+  &_svg {
+    width: 2em;
+    height: 2em;
+  }
+  &_nav {
+    background-color: cyan;
+  }
+  &_ul {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  &_li {
+    margin: 0 0.5em;
+  }
+}
