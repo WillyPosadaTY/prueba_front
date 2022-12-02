@@ -1,8 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FLIGHT_SERVICE } from '../../app/services/flight/injection-token/injection-token';
 import { IFlightService } from '../../app/services/flight/contract/flight-service.interface';
-import { ResponseApi } from './models/response.model';
 import { Flight } from './models/flight.model';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Journey } from './models/journey.model';
 
 @Component({
   selector: 'app-home',
@@ -11,11 +12,40 @@ import { Flight } from './models/flight.model';
 })
 export class HomeComponent implements OnInit {
   flights: Flight[] = [];
+  searchFlightForm!: FormGroup;
+  routeFlights: Array<Flight> = [];
+  flightVisited: Array<Flight> = [];
+  otra: Array<Flight> = [];
+  journey: Journey[] = [];
   constructor(
-    @Inject(FLIGHT_SERVICE) protected flightService: IFlightService
+    @Inject(FLIGHT_SERVICE) protected flightService: IFlightService,
+    private readonly fb: FormBuilder
   ) {}
+
   ngOnInit(): void {
     this.getFlights();
+    this.buildForm();
+  }
+
+  buildForm() {
+    this.searchFlightForm = this.fb.group({
+      origin: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('/^[a-zA-Z]+$/'),
+          Validators.maxLength(3),
+        ],
+      ],
+      destination: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('/^[a-zA-Z]+$/'),
+          Validators.maxLength(3),
+        ],
+      ],
+    });
   }
 
   getFlights() {
@@ -33,9 +63,71 @@ export class HomeComponent implements OnInit {
         this.flights.push(flight);
       });
     });
+    console.log(this.flights);
   }
-  getRoutes(origin: string, destination: string) {
-    
 
+  calculatePrice(arr: Flight[]) {
+    var minPrice: number = 5000;
+    var maxPrice: number = 0;
+    for (let j = 0; j < arr.length; j++) {
+      const element = arr[j].price;
+      if (element <= minPrice) {
+        minPrice = element;
+      }
+      if (element >= maxPrice) {
+        maxPrice = element;
+      }
+    }
+  }
+
+  public buildJourney() {
+    const flightOriginArray = this.flights.filter(
+      (flight) =>
+        flight.origin ===
+        this.searchFlightForm.controls['origin'].value.toUpperCase()
+    );
+    flightOriginArray.forEach((flightOrigin) => {
+      const newJourney: Journey = {
+        destination: flightOrigin.destination,
+        origin: flightOrigin.origin,
+        price: flightOrigin.price,
+        flights: this.buildFlights(
+          flightOrigin.origin,
+          flightOrigin,
+          flightOrigin.destination
+        ),
+      };
+
+      this.journey.push(newJourney);
+    });
+  }
+
+  private buildFlights(origin: string, flight: Flight,destination: string): Flight[] {
+    this.flightVisited = [];
+    this.routeFlights = [];
+    this.recursiveRoutes(destination,flight,origin);
+    return this.routeFlights;
+  }
+
+  private clearFlights() {}
+
+  recursiveRoutes(actualDestination: string, flight: Flight, origin: string) {
+    if (
+      actualDestination ===
+      this.searchFlightForm.controls['destination'].value.toUpperCase()
+    ) {
+      this.routeFlights.push(flight);
+      return this.routeFlights;
+    }
+    if (!this.flightVisited.find((visited) => visited.destination === actualDestination)) {
+      let destinationArray = this.flights.filter(
+        (flight) => flight.origin === actualDestination
+      );
+      this.flightVisited.push(flight);
+      destinationArray.forEach((flight) => {
+        return this.recursiveRoutes(flight.destination, flight, flight.origin);
+      });
+    }
+    return;
   }
 }

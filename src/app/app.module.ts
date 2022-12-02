@@ -9,6 +9,7 @@ import { HomeComponent } from '../components/home/home.component';
 import { flightProvider } from './services/flight/injection-token/injection-token';
 import { InfoComponent } from '../components/info/info.component';
 import { PersonalInfoComponent } from '../components/personal-info/personal-info.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,9 @@ import { PersonalInfoComponent } from '../components/personal-info/personal-info
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    ReactiveFormsModule,
+    FormsModule
   ],
   providers: [
     flightProvider
