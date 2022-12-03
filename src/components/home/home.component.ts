@@ -4,6 +4,7 @@ import { IFlightService } from '../../app/services/flight/contract/flight-servic
 import { Flight } from './models/flight.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Journey } from './models/journey.model';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -15,7 +16,9 @@ export class HomeComponent implements OnInit {
   searchFlightForm!: FormGroup;
   routeFlights: Array<Flight> = [];
   flightVisited: Array<Flight> = [];
-  otra: Array<Flight> = [];
+  tempFlights: Array<Flight> = [];
+  validatorFlights: Array<Flight> = [];
+  nodesVisited: Array<Flight> = [];
   journey: Journey[] = [];
   constructor(
     @Inject(FLIGHT_SERVICE) protected flightService: IFlightService,
@@ -63,7 +66,7 @@ export class HomeComponent implements OnInit {
         this.flights.push(flight);
       });
     });
-    console.log(this.flights);
+    //console.log(this.flights);
   }
 
   calculatePrice(arr: Flight[]) {
@@ -102,30 +105,62 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  private buildFlights(origin: string, flight: Flight,destination: string): Flight[] {
+  private buildFlights(
+    origin: string,
+    flight: Flight,
+    destination: string
+  ): Flight[] {
     this.flightVisited = [];
     this.routeFlights = [];
-    this.recursiveRoutes(destination,flight,origin);
+    this.validatorFlights = [];
+    this.recursiveRoutes(destination, flight, this.tempFlights, this.searchFlightForm.controls['origin'].value.toUpperCase());
+    console.log('..............');
+    console.log(this.routeFlights);
+    //console.log(this.validatorFlights);
     return this.routeFlights;
   }
-
-  private clearFlights() {}
-
-  recursiveRoutes(actualDestination: string, flight: Flight, origin: string) {
-    if (
-      actualDestination ===
-      this.searchFlightForm.controls['destination'].value.toUpperCase()
-    ) {
+  recursiveRoutes(
+    actualDestination: string,
+    flight: Flight,
+    tempFlight: Flight[],
+    origin: string
+  ) {
+    if (actualDestination === this.searchFlightForm.controls['destination'].value.toUpperCase() && origin === this.searchFlightForm.controls['origin'].value.toUpperCase()) {
       this.routeFlights.push(flight);
+      this.validatorFlights.push(flight);
+      return this.routeFlights;
+    }
+    if (actualDestination === this.searchFlightForm.controls['destination'].value.toUpperCase()) {
+      this.routeFlights.push(flight);
+      this.validatorFlights.push(flight);
       return this.routeFlights;
     }
     if (!this.flightVisited.find((visited) => visited.destination === actualDestination)) {
-      let destinationArray = this.flights.filter(
-        (flight) => flight.origin === actualDestination
-      );
+      let destinationArray = this.flights.filter((flight) => flight.origin === actualDestination);
       this.flightVisited.push(flight);
       destinationArray.forEach((flight) => {
-        return this.recursiveRoutes(flight.destination, flight, flight.origin);
+        this.recursiveRoutes(flight.destination, flight, this.tempFlights, flight.origin);
+        if (this.routeFlights[0]) {
+          this.tempFlights = this.flights.filter((data) =>
+              data.destination === this.routeFlights[this.routeFlights.length - 1].origin
+          );
+          this.tempFlights.forEach((element) => {
+              if (
+                element.destination ===
+                this.validatorFlights[this.validatorFlights.length - 1].origin
+                && this.validatorFlights.length !== 0
+              ) {
+                if(element.destination !== this.searchFlightForm.controls['origin'].value.toUpperCase()){
+                this.validatorFlights.push(element);
+              }
+              }
+          });
+          this.routeFlights = this.validatorFlights;
+          // console.log(this.tempFlights);
+          // console.log('............');
+          // console.log(this.routeFlights);
+          // console.log('--------------');
+        }
       });
     }
     return;
