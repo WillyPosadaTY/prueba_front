@@ -20,6 +20,7 @@ export class HomeComponent implements OnInit {
   validatorFlights: Array<Flight> = [];
   nodesVisited: Array<Flight> = [];
   journey: Journey[] = [];
+  selectJourney: Journey = {} as Journey;
   constructor(
     @Inject(FLIGHT_SERVICE) protected flightService: IFlightService,
     private readonly fb: FormBuilder
@@ -36,16 +37,18 @@ export class HomeComponent implements OnInit {
         '',
         [
           Validators.required,
-          Validators.pattern('/^[a-zA-Z]+$/'),
+          Validators.pattern('[a-zA-Z]+'),
           Validators.maxLength(3),
+          Validators.minLength(3),
         ],
       ],
       destination: [
         '',
         [
           Validators.required,
-          Validators.pattern('/^[a-zA-Z]+$/'),
+          Validators.pattern('[a-zA-Z]+'),
           Validators.maxLength(3),
+          Validators.minLength(3),
         ],
       ],
     });
@@ -53,70 +56,92 @@ export class HomeComponent implements OnInit {
 
   getFlights() {
     this.flightService.getFlights().subscribe((res) => {
-      res.forEach((fl) => {
-        const flight: Flight = {
-          destination: fl.arrivalStation,
-          origin: fl.departureStation,
+      res.forEach((flight) => {
+        const flights: Flight = {
+          destination: flight.arrivalStation,
+          origin: flight.departureStation,
           transport: {
-            flightCarrier: fl.flightCarrier,
-            flightNumber: fl.flightNumber,
+            flightCarrier: flight.flightCarrier,
+            flightNumber: flight.flightNumber,
           },
-          price: fl.price,
+          price: flight.price,
         };
-        this.flights.push(flight);
+        this.flights.push(flights);
       });
     });
-    //console.log(this.flights);
-  }
-
-  calculatePrice(arr: Flight[]) {
-    var minPrice: number = 5000;
-    var maxPrice: number = 0;
-    for (let j = 0; j < arr.length; j++) {
-      const element = arr[j].price;
-      if (element <= minPrice) {
-        minPrice = element;
-      }
-      if (element >= maxPrice) {
-        maxPrice = element;
-      }
-    }
   }
 
   public buildJourney() {
+    this.clearJourney();
+    this.clearFlight();
+    const [flightOriginArray, flightDestinationArrayExist] = this.extractFlightArrays();
+    if(flightDestinationArrayExist.length > 0){
+      flightOriginArray.forEach((flightOrigin) => {
+        const newJourney: Journey = {
+          destination: this.searchFlightForm.controls['destination'].value.toUpperCase(),
+          origin: flightOrigin.origin,
+          price: flightOrigin.price,
+          flights: this.buildFlights(
+            flightOrigin,
+            flightOrigin.destination
+          ),
+        };
+        this.journey.push(newJourney);
+      });
+    }
+    if(this.journey.length > 0){
+      this.journey.map(journey => {
+        if(Object.keys(this.selectJourney).length === 0 || this.selectJourney.flights.length > journey.flights.length){
+          this.selectJourney = journey;
+        }
+      });
+      this.selectJourney.price = this.calculatePrice(this.selectJourney.flights);
+    }
+  }
+  extractFlightArrays():Flight[][]{
     const flightOriginArray = this.flights.filter(
       (flight) =>
-        flight.origin ===
-        this.searchFlightForm.controls['origin'].value.toUpperCase()
+        flight.origin === this.searchFlightForm.controls['origin'].value.toUpperCase()
     );
-    flightOriginArray.forEach((flightOrigin) => {
-      const newJourney: Journey = {
-        destination: flightOrigin.destination,
-        origin: flightOrigin.origin,
-        price: flightOrigin.price,
-        flights: this.buildFlights(
-          flightOrigin.origin,
-          flightOrigin,
-          flightOrigin.destination
-        ),
-      };
-
-      this.journey.push(newJourney);
-    });
+    
+    const flightDestinationArrayExist = this.flights.filter(
+      (flight) =>
+        flight.origin === this.searchFlightForm.controls['destination'].value.toUpperCase() ||
+        flight.destination === this.searchFlightForm.controls['destination'].value.toUpperCase() 
+    );
+    return [flightOriginArray, flightDestinationArrayExist];
   }
-
-  private buildFlights(
-    origin: string,
-    flight: Flight,
-    destination: string
-  ): Flight[] {
+  calculatePrice(flights: Flight[]):number {
+    let price = 0;
+    if(flights.length > 0){
+      flights.map(flight =>{
+        price += flight.price;
+      });
+    }
+    return price;
+  }
+  private clearFlight(){
     this.flightVisited = [];
     this.routeFlights = [];
     this.validatorFlights = [];
-    this.recursiveRoutes(destination, flight, this.tempFlights, this.searchFlightForm.controls['origin'].value.toUpperCase());
-    console.log('..............');
-    console.log(this.routeFlights);
-    //console.log(this.validatorFlights);
+  }
+  
+  private clearJourney(){
+    this.journey = [];
+    this.selectJourney = {} as Journey;
+  }
+  private buildFlights(
+    
+    flight: Flight,
+    destination: string
+  ): Flight[] {
+    this.clearFlight();
+    this.recursiveRoutes(
+      destination,
+      flight,
+      this.tempFlights,
+      this.searchFlightForm.controls['origin'].value.toUpperCase()
+    );
     return this.routeFlights;
   }
   recursiveRoutes(
@@ -136,24 +161,28 @@ export class HomeComponent implements OnInit {
       return this.routeFlights;
     }
     if (!this.flightVisited.find((visited) => visited.destination === actualDestination)) {
-      let destinationArray = this.flights.filter((flight) => flight.origin === actualDestination);
+      let destinationArray = this.flights.filter(
+        (flight) => flight.origin === actualDestination
+      );
       this.flightVisited.push(flight);
       destinationArray.forEach((flight) => {
-        this.recursiveRoutes(flight.destination, flight, this.tempFlights, flight.origin);
+        this.recursiveRoutes(
+          flight.destination,
+          flight,
+          this.tempFlights,
+          flight.origin
+        );
         if (this.routeFlights[0]) {
-          this.tempFlights = this.flights.filter((data) =>
+          this.tempFlights = this.flights.filter(
+            (data) =>
               data.destination === this.routeFlights[this.routeFlights.length - 1].origin
           );
           this.tempFlights.forEach((element) => {
-              if (
-                element.destination ===
-                this.validatorFlights[this.validatorFlights.length - 1].origin
-                && this.validatorFlights.length !== 0
-              ) {
-                if(element.destination !== this.searchFlightForm.controls['origin'].value.toUpperCase()){
+            if (element.destination === this.validatorFlights[this.validatorFlights.length - 1].origin && this.validatorFlights.length !== 0) {
+              if (element.destination !== this.searchFlightForm.controls['origin'].value.toUpperCase()) {
                 this.validatorFlights.push(element);
               }
-              }
+            }
           });
           this.routeFlights = this.validatorFlights;
           // console.log(this.tempFlights);

@@ -10,9 +10,7 @@ export class AppComponent {
   title = 'prueba_front';
 
   constructor(private flight: FlightService) {
-    this.flight.getFlights().subscribe(resp=>{
-      console.log(resp);
-    })
+    
 
   }
 }
