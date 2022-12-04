@@ -4,7 +4,6 @@ import { IFlightService } from '../../app/services/flight/contract/flight-servic
 import { Flight } from './models/flight.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Journey } from './models/journey.model';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -139,7 +138,6 @@ export class HomeComponent implements OnInit {
     this.recursiveRoutes(
       destination,
       flight,
-      this.tempFlights,
       this.searchFlightForm.controls['origin'].value.toUpperCase()
     );
     return this.routeFlights;
@@ -147,7 +145,6 @@ export class HomeComponent implements OnInit {
   recursiveRoutes(
     actualDestination: string,
     flight: Flight,
-    tempFlight: Flight[],
     origin: string
   ) {
     if (actualDestination === this.searchFlightForm.controls['destination'].value.toUpperCase() && origin === this.searchFlightForm.controls['origin'].value.toUpperCase()) {
@@ -169,7 +166,6 @@ export class HomeComponent implements OnInit {
         this.recursiveRoutes(
           flight.destination,
           flight,
-          this.tempFlights,
           flight.origin
         );
         if (this.routeFlights[0]) {
@@ -185,10 +181,6 @@ export class HomeComponent implements OnInit {
             }
           });
           this.routeFlights = this.validatorFlights;
-          // console.log(this.tempFlights);
-          // console.log('............');
-          // console.log(this.routeFlights);
-          // console.log('--------------');
         }
       });
     }

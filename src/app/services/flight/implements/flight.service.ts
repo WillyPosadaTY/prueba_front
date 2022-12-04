@@ -17,10 +17,6 @@ export class FlightService implements IFlightService {
   }
 
   getFlights(): Observable<ResponseApi[]> {
-    // this.http.get(this._api).subscribe((res) => {
-    //   const flights: Response[] = res;
-
-    // });
     return this.http.get<ResponseApi[]>(this._api);
   }
 }
