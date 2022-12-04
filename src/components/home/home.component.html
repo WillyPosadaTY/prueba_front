@@ -1,0 +1,101 @@
+<form [formGroup]="searchFlightForm" (ngSubmit)="buildJourney()">
+  <div class="row">
+    <div class="comp">
+      <h1 class="comp_tittle">Complete la información</h1>
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <div class="col-lg-3 col-md-5 col-sm-12">
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon3">Origen</span>
+        <input
+          type="text"
+          class="form-control"
+          aria-describedby="basic-addon3"
+          style="text-transform: uppercase"
+          formControlName="origin"
+        />
+      </div>
+      <div class="input_error" [class.opened]="searchFlightForm.get('origin')?.errors && searchFlightForm.get('origin')?.dirty">
+        <p *ngIf="searchFlightForm.get('origin')?.hasError('required')">Este campo es requerido</p>
+        <p *ngIf="searchFlightForm.get('origin')?.hasError('minlength')">Este campo debe contener 3 caracteres</p>
+        <p *ngIf="searchFlightForm.get('origin')?.hasError('maxlength')">Este campo debe contener 3 caracteres</p>
+        <p *ngIf="searchFlightForm.get('origin')?.hasError('pattern')">Sólo se permiten letras en este campo</p>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-5 col-sm-12">
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon3">Destino</span>
+        <input
+          type="text"
+          class="form-control"
+          aria-describedby="basic-addon3"
+          style="text-transform: uppercase"
+          formControlName="destination"
+        />
+      </div>
+      <div class="input_error" [class.opened]="searchFlightForm.get('destination')?.errors && searchFlightForm.get('destination')?.dirty">
+        <p *ngIf="searchFlightForm.get('destination')?.hasError('required')">Este campo es requerido</p>
+        <p *ngIf="searchFlightForm.get('destination')?.hasError('minlength')">Este campo debe contener 3 caracteres</p>
+        <p *ngIf="searchFlightForm.get('destination')?.hasError('maxlength')">Este campo debe contener 3 caracteres</p>
+        <p *ngIf="searchFlightForm.get('destination')?.hasError('pattern')">Sólo se permiten letras en este campo</p>
+      </div>
+    </div>
+    <div class="col-2 search_button">
+      <button
+        type="submit"
+        class="btn btn-success btn-sm"
+        [disabled]="searchFlightForm.invalid"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-search"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+          />
+        </svg>
+        Search
+      </button>
+
+    </div>
+  </div>
+</form>
+<br />
+<br />
+<div class="col-md-8 col-sm-12 offset-md-2 info-flights" *ngIf="!selectJourney.flights && searchFlightForm.invalid">
+  La ruta de {{searchFlightForm.get('origin')?.value.toUpperCase()}} hacia {{searchFlightForm.get('destination')?.value.toUpperCase()}} no puede ser procesada.
+</div>
+<div class="col-md-8 col-sm-12 offset-md-2 info-flights" *ngIf="selectJourney.flights">
+  <label> La ruta de {{searchFlightForm.get('origin')?.value.toUpperCase()}} hacia {{searchFlightForm.get('destination')?.value.toUpperCase()}} contiene la siguiente ruta.</label>
+  <span><strong> Valor: {{selectJourney.price}} USD</strong></span>
+  
+  <table class="table table-dark">
+    <thead>
+      <tr>
+        <th scope="col">Origen</th>
+        <th scope="col">Destino</th>
+        <th scope="col">Precio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let flight of selectJourney.flights">
+        <td>{{flight.origin}}</td>
+        <td>{{flight.destination}}</td>
+        <td>{{flight.price}}</td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+<br />
+<br />
+<app-info></app-info>

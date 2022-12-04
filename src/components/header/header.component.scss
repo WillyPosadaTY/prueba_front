@@ -1,0 +1,30 @@
+.navbar {
+  &-brand {
+    color: white;
+  }
+  &-nav {
+    color: white !important;
+  }
+  &-link {
+    color: white !important;
+  }
+  &-item {
+    color: white !important;
+  }
+  .fontColor {
+    &-nav {
+      color: white !important;
+    }
+
+    &-item {
+      color: white !important;
+    }
+
+    &-link {
+      color: white !important;
+    }
+    .disabled{
+      color:rgb(155, 155, 155) !important;
+    }
+  }
+}
